@@ -39,7 +39,7 @@ summary(df)
 Como podemos observar esta base de datos está incomprensible. Las palabras con acentos no se _parsean_ correctamente. Esto es debido a que R no conoce la codificación estándard  y hay que especificarsela dándole el argumento a la función read.csv() de encoding con valor "UTF-8"
 
 ```{r}
-df <- read.csv("./data/datos_2021.csv", encoding = "UTF-8") 
+df <- read.csv("./data/datos_2021.csv", encoding = "UTF-8")
 
 head(df)
 summary(df)
@@ -52,7 +52,7 @@ Antes de continuar, tenemos que asegurarnos que nuestra base de datos está usab
 ```{r}
 
 # Primero de todo necesitamos paquetes. Este código instalará los paquetes que usaremos. 
-if (!require('pacman')) install.packages('pacman'); library('pacman') 
+if (!require('pacman')) install.packages('pacman'); library('pacman') ## El ; sirve para poner dos líneas de código en una mismsa
 pacman::p_load(janitor, skimr) 
 
 # los :: indican a R que tiene que usar la función del paquete 
@@ -61,6 +61,8 @@ pacman::p_load(janitor, skimr)
 # viene cada función
 
 df <- clean_names(df) # esta funcion estandariza los nombres de nuestras columnas
+# Te quita todos los caracteres especiales, te añade barras bajas, te quita tildes... de todas las columnas
+# Es del paquete janitor
 
 # Pero estas columnas siguen sin ser usables
 # existen diversas estrategias para cambiar los nombres de columnas
@@ -78,6 +80,7 @@ colnames(df)
 
 
 # Vamos a quedarnos con de cada nombre, las 4 primeras letras
+# Hay algunas veces que no hace falta recodificar de uno en uno. Aquí me puedo cargar muchas recodificaciones de golpe
 colnames(df) <- substr(colnames(df), 1, 4)
 
 ```
@@ -136,14 +139,14 @@ Con esta información podemos calcular la diferencia entre la estimación y la r
 
 ```{r}
 
-df$e4_q <- 
+df$e4_q <- as.integer(df$e4_q)
 df$e4_q
 
-df$e1_error 
-df$e2_error
-df$e3_error
-df$e4_error
-df$e5_error
+df$e1_error <- (df$e1_q-20)
+df$e2_error <- (df$e2_q-25)
+df$e3_error <- (df$e3_q-77)
+df$e4_error <- (df$e4_q-45)
+df$e5_error <- (df$e5_q-70)
 
 
 summary(df$e1_q)
@@ -158,9 +161,9 @@ Con estas nuevas variables podemos llevar a cabo una regresión para poder estim
 ```{r}
 
 
+m1 <- lm(e1_error  ~ v1_e + a1_g + a2_e , data=df)
+summary(m1)
 
-m1 <- lm()
-summary(m1) 
 
 
 ```
@@ -168,8 +171,8 @@ summary(m1)
 Si no has encontrado una relación significativa puedes explorar con un pqueño gráfico la relación entre la variable v1_e y e1_error para ver hasta que punto podemos relacionar la seguridad de las evaluaciones con la precisión de las mismas 
 
 ```{r}
-plot()
-cor()
+plot(df$v1_e, df$e1_error)
+cor(df$v1_e, df$e1_error)
 ```
 
 Con este error calculado podemos llevar a cabo otros cálculos interesantes como por ejemplo el error cuadrático medio. Recuerda que en estadística nos interesa el error porque es cuánto falla nuestro modelo haciendo predicciones. El error cuadrático medio (RMSE en inglés) es la raíz cuadrada del valor absoluto del error al cuadrado. 
@@ -178,7 +181,7 @@ La fórmula es la siguiente: `rmse = sqrt(mean((valor_real -  valor_predicho)^2)
 
 ```{r}
 
-
+rmse = sqrt(mean((df$e1_error)^2))
 
 ```
 
@@ -187,11 +190,16 @@ Ahora que conocemos esta lógica podemos crear una función que nos entregue el 
 ```{r}
 
 rmse <- function(x)
-{
-  
-
+{y <-sqrt( mean( (x)^2 , na.rm = TRUE ) )
+return (y)
 }
 
+
 rmse(df$e1_error)
+rmse(df$e2_error)
+rmse(df$e3_error)
+rmse(df$e4_error)
+rmse(df$e5_error)
+
 
 ```
